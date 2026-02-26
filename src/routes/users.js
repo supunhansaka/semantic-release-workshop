@@ -12,6 +12,14 @@ let users = [
 ];
 let nextId = 4;
 
+function parseUserId(paramId) {
+  const id = parseInt(paramId, 10);
+  if (Number.isNaN(id) || id < 1) {
+    return null;
+  }
+  return id;
+}
+
 /**
  * GET /users
  * Returns all users
@@ -25,7 +33,10 @@ router.get('/', (req, res) => {
  * Returns a single user by ID
  */
 router.get('/:id', (req, res) => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseUserId(req.params.id);
+  if (id === null) {
+    return res.status(400).json({ error: 'Invalid user ID' });
+  }
   const user = users.find((u) => u.id === id);
 
   if (!user) {
@@ -62,7 +73,10 @@ router.post('/', (req, res) => {
  * Updates an existing user
  */
 router.put('/:id', (req, res) => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseUserId(req.params.id);
+  if (id === null) {
+    return res.status(400).json({ error: 'Invalid user ID' });
+  }
   const index = users.findIndex((u) => u.id === id);
 
   if (index === -1) {
@@ -70,6 +84,12 @@ router.put('/:id', (req, res) => {
   }
 
   const { name, email, role } = req.body;
+  if (email) {
+    const existingUser = users.find((u) => u.email === email && u.id !== id);
+    if (existingUser) {
+      return res.status(409).json({ error: 'A user with this email already exists' });
+    }
+  }
   users[index] = { ...users[index], ...(name && { name }), ...(email && { email }), ...(role && { role }) };
 
   res.json(users[index]);
@@ -80,7 +100,10 @@ router.put('/:id', (req, res) => {
  * Deletes a user by ID
  */
 router.delete('/:id', (req, res) => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseUserId(req.params.id);
+  if (id === null) {
+    return res.status(400).json({ error: 'Invalid user ID' });
+  }
   const index = users.findIndex((u) => u.id === id);
 
   if (index === -1) {
