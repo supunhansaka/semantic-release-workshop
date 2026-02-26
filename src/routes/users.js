@@ -22,10 +22,41 @@ function parseUserId(paramId) {
 
 /**
  * GET /users
- * Returns all users
+ * Returns users with optional pagination, role filter, and search
+ * Query: page (default 1), limit (default 20), role (admin|user), search (name or email)
  */
 router.get('/', (req, res) => {
-  res.json({ users, total: users.length });
+  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
+  const roleFilter = req.query.role;
+  const search = (req.query.search || '').trim().toLowerCase();
+
+  let result = [...users];
+
+  if (roleFilter) {
+    result = result.filter((u) => u.role === roleFilter);
+  }
+  if (search) {
+    result = result.filter(
+      (u) =>
+        u.name.toLowerCase().includes(search) ||
+        u.email.toLowerCase().includes(search)
+    );
+  }
+
+  const total = result.length;
+  const totalPages = Math.ceil(total / limit) || 1;
+  const currentPage = Math.min(page, totalPages);
+  const offset = (currentPage - 1) * limit;
+  const paginatedUsers = result.slice(offset, offset + limit);
+
+  res.json({
+    users: paginatedUsers,
+    total,
+    page: currentPage,
+    limit,
+    totalPages,
+  });
 });
 
 /**

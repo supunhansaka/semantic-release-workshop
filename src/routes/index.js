@@ -16,7 +16,7 @@ router.get('/', (req, res) => {
     endpoints: {
       'GET /': 'API information',
       'GET /health': 'Health check',
-      'GET /users': 'List all users',
+      'GET /users': 'List users (query: page, limit, role, search)',
       'GET /users/:id': 'Get user by ID',
       'POST /users': 'Create a new user',
       'PUT /users/:id': 'Update a user',
